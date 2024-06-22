@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Encryption</title>
+</head>
+<body>
+    <h1>Image Encryption</h1>
+    <form id="uploadForm">
+        <input type="file" id="imageInput" accept="image/*">
+        <button type="submit">Encrypt Image</button>
+    </form>
+    <div id="encryptedImage"></div>
+    <form id="decryptForm">
+        <button type="submit">Decrypt Image</button>
+    </form>
+    <div id="decryptedImage"></div>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            
+            const fileInput = document.getElementById('imageInput').files[0];
+            const formData = new FormData();
+            formData.append('image', fileInput);
+            
+            try {
+                const response = await fetch('http://127.0.0.1:8080/encrypt_image', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                const encryptedImage = data.encrypted_image;
+                
+                document.getElementById('encryptedImage').innerHTML = `<textarea id="encryptedImageData" style="width: 100%; height: 200px;">${encryptedImage}</textarea>`;
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        });
+
+        document.getElementById('decryptForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const encryptedImage = document.getElementById('encryptedImageData').value;
+            const data = { encrypted_image: encryptedImage };
+
+            try {
+                const response = await fetch('http://127.0.0.1:8080/decrypt_image', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                const responseData = await response.json();
+                const decryptedImage = responseData.decrypted_image;
+
+                document.getElementById('decryptedImage').innerHTML = `<img src="data:image/png;base64,${decryptedImage}" alt="Decrypted Image">`;
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        });
+    </script>
+</body>
+</html>
